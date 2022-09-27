@@ -5,7 +5,7 @@
 address: .word 0
 .text
 addi s1 zero 3#numero de discos
-addi a0 zero 3#copia
+add a0 zero s1#copia
 addi s2 zero 1#numero para comparar
 
 addi a1 zero 0#apuntador a los discos
@@ -13,6 +13,8 @@ addi a1 zero 0#apuntador a los discos
 addi s3 zero 0#Apuntador a la torre A
 addi s4 zero 0#Apuntador a la torre B
 addi s5 zero 0#Apuntador a la torre C
+
+addi t0 zero 0#Registro auxiliar para hacer cambio de torre
 
 #MAIN
 jal ra INIT#se manda llamar a la funcion para inicializar torres
@@ -41,16 +43,25 @@ FILL:	sw a0 0(s3)#se añade el disco
 HANOI: 
 	addi sp sp 32 #se reserva stack
 	sw ra 0(sp)#se almacenan los valores
-	sw s1 4(sp)#en el stack
-	sw s2 8(sp)	
+	sw s3 4(sp)#en el stack
+	sw s4 8(sp)
+	sw s5 12(sp)	
 	blt s2 s1 LOOP # si el nÃºmero de discos es mayor a 1 pasa al loop recursivo
 	jal zero RETURN#si es igual a 1 comienza a retornar
 LOOP:	sub s1 s1 s2 #Cada vez del loop se resta numero de discos menos 1
-	
+	add t0 zero s5#Se cambia de 
+	add s5 zero s4#torres
+	add s4 zero t0
 	jal ra HANOI#se llama de nuevo la funcion
+	add t0 zero s3#Se cambia de 
+	add s3 zero s4#torres
+	add s4 zero t0
+	jal ra HANOI
 RETURN:	lw a1 0(s3)
 	sw zero 0(s3)
+	addi s3 s3 -4
 	sw a1 0(s5)
+	addi s5 s5 4
 	lw ra 0(sp) #se retornan los valores
 	lw s1 4(sp)#del stack
 	lw s2 8(sp)#a los registros
