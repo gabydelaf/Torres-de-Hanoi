@@ -10,9 +10,9 @@ addi s2 zero 1#numero para comparar
 
 addi a1 zero 0#apuntador a los discos
 
-addi s3 zero 0#Apuntador a la torre A
-addi s4 zero 0#Apuntador a la torre B
-addi s5 zero 0#Apuntador a la torre C
+addi s3 zero 0#Apuntador a la torre origen
+addi s4 zero 0#Apuntador a la torre aux
+addi s5 zero 0#Apuntador a la torre destino
 
 addi t0 zero 0#Registro auxiliar para hacer cambio de torre
 
@@ -27,12 +27,13 @@ jal zero END
 INIT:	
 	lui sp %hi(address)#se reserva stack para las tres torres
 	addi sp sp %lo(address)
-	add s3 s3 sp#se carga la direccion de las torres vacias
+	add s3 s3 sp#se carga la direccion de las torres vacias #origen
 	addi sp sp 32#en los apuntadores
-	add s4 s4 sp
+	add s4 s4 sp#aux
 	addi sp sp 32
-	add s5 s5 sp
-	#Se comienza a llenar la torre A
+	add s5 s5 sp#destino
+	
+	#Se comienza a llenar la torre origen
 FILL:	sw a0 0(s3)#se añade el disco
 	addi a0 a0 -1 #se decrementa el numero de discos
 	addi s3 s3 4 #se aumenta el apuntador
@@ -40,57 +41,55 @@ FILL:	sw a0 0(s3)#se añade el disco
 	
 	addi s3 s3 -4 #regresa a apuntar al ultimo disco
 	jalr zero ra 0 #retorna a la funcion padre
+	
+	
 
 HANOI: 
 	addi sp sp -16 #se reserva stack
 	sw ra 0(sp)#se almacenan los valores
 	sw s3 4(sp)#en el stack
-	sw s5 8(sp)
-	sw s4 12(sp)	
+	sw s4 8(sp)
+	sw s5 12(sp)	
 	blt s2 s1 LOOP # si el numero de discos es mayor a 1 pasa al loop recursivo
 	
 	jal zero RETURN#si es igual a 1 comienza a retornar
 	
-LOOP:	sub s1 s1 s2 #Cada vez del loop se resta numero de discos menos 1
-	add t0 zero s5#Se cambia de 
-	add s5 zero s4#torres
-	add s4 zero t0
+LOOP: 	addi s1 s1 -1
+	add t0 zero s4
+	add s4 zero s5
+	add s5 zero t0
 	jal ra HANOI
-	add t0 zero s5#Se cambia de 
-	add s5 zero s4#torres
-	add s4 zero t0
+	#se cambian los discos
+	lw ra 0(sp) #se retornan los valores
+	lw s3 4(sp)#del stack
+	lw s4 8(sp)#a los registros
+	lw s5 12(sp)
 	
-	lw a1 0(s3)	#se mueve el disco x de torre de origen a torre destino
+	lw a1 0(s3)	
 	sw zero 0(s3)
 	addi s3 s3 -4
 	sw a1 0(s5)
-	addi s5 s5 4
 	
-	add t0 zero s3#Se cambia de 
-	add s3 zero s4#torres
-	add s4 zero t0
+	addi s1 s1 -1
+	add t0 zero s3
+	add s3 zero s5
+	add s5 zero t0
+	jal ra HANOI
 	
-	addi sp sp -16 #se reserva stack
-	sw ra 0(sp)#se almacenan los valores
-	sw s3 4(sp)#en el stack
-	sw s5 8(sp)
-	sw s4 12(sp)
-	
-	
-	
-	
-	jal ra HANOI#se llama de nuevo la funcion
 	
 	
 RETURN:	lw ra 0(sp) #se retornan los valores
 	lw s3 4(sp)#del stack
-	lw s5 8(sp)#a los registros
-	lw s4 12(sp)
+	lw s4 8(sp)#a los registros
+	lw s5 12(sp)
 	addi sp sp 16
-	lw a1 0(s3)	#se mueve el disco 1 de torre de origen a torre destino
+	lw a1 0(s3)	
 	sw zero 0(s3)
 	addi s3 s3 -4
 	sw a1 0(s5)
+	
+	sw s3 4(sp)#en el stack
+
 	
 	
 	jalr zero ra 0 #retorna a la funcion padre
